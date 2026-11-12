@@ -1,0 +1,182 @@
+# ==========================================================================
+# 通用 .gitignore —— AI 工具 / 编辑器 / 操作系统 / 环境密钥 / 依赖与构建产物
+# --------------------------------------------------------------------------
+# 原则：
+#   1. 需要团队共享的配置文件（.cursor/rules、CLAUDE.md、AGENTS.md、
+#      .vscode/extensions.json 等）应提交，只忽略「个人本地覆盖」与「含密钥」项。
+#   2. 若某条规则与项目实际冲突，直接删除对应行即可，各区段互相独立。
+# ==========================================================================
+
+# ---------------------------- AI 编码工具 ----------------------------
+# 通用：本地规则/会话缓存/索引
+*.local.md
+.agents/
+.ai/
+.aiassistant/
+.specstory/
+.mcp.json
+mcp.local.json
+
+# Claude Code
+.claude/settings.local.json
+.claude/*.local.*
+.claude/projects/
+.claude/todos/
+.claude/statsig/
+.claude/shell-snapshots/
+CLAUDE.local.md
+
+# OpenAI Codex / Gemini CLI
+.codex/
+.gemini/
+GEMINI.local.md
+
+# Cursor（mcp.json 常含 API Key，按需保留示例文件）
+.cursor/mcp.json
+.cursor/*.local.*
+.cursor/worktrees/
+
+# Windsurf / Codeium / Cline / Roo Code / Continue
+.codeium/
+.windsurf/mcp.json
+.windsurf/*.local.*
+.clinerules.local
+.roo/
+.continue/
+
+# Aider
+.aider.conf.local.yml
+.aider.chat.history.md
+.aider.input.history
+.aider.tags.cache*/
+
+# Trae / Qoder / Zed 等
+.trae/*.local.*
+.qoder/
+.zed/settings.local.json
+
+# WorkBuddy 本地项目数据
+.workbuddy/
+
+# ---------------------------- 编辑器 / IDE ----------------------------
+# VS Code（保留可共享的配置，忽略个人设置与本地历史）
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/tasks.json
+!.vscode/*.code-snippets
+# .vscode/mcp.json 通常含 MCP 服务密钥，保持忽略；可另存 mcp.example.json 提交
+.history/
+
+# JetBrains 全家桶
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+.fleet/
+
+# Vim / Neovim / Emacs
+*.swp
+*.swo
+*.swn
+*~
+.#*
+\#*\#
+.netrwhist
+
+# Sublime Text
+*.sublime-workspace
+
+# Obsidian 工作区状态
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+.obsidian/cache
+
+# ---------------------------- 操作系统 ----------------------------
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# Linux
+.directory
+.fuse_hidden*
+.nfs*
+
+# ---------------------------- 密钥 / 环境变量 ----------------------------
+.env
+.env.*
+!.env.example
+!.env.sample
+*.pem
+*.key
+*.p12
+*.pfx
+secrets.json
+credentials.json
+
+# ---------------------------- 日志 / 临时文件 ----------------------------
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+tmp/
+temp/
+# 临时脚本/草稿目录；若项目有正式 test 目录，请删除下面这行
+test/
+.cache/
+
+# ---------------------------- 依赖 / 构建产物 ----------------------------
+# Node.js
+node_modules/
+.pnpm-store/
+.yarn/
+dist/
+build/
+.next/
+.nuxt/
+.output/
+.turbo/
+.parcel-cache/
+.vite/
+coverage/
+*.tsbuildinfo
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+
+# PHP
+vendor/
+.phpunit.result.cache
+
+# Go / Rust / Java
+target/
+*.class
+.gradle/
+
+# 打包与压缩产物（按需保留）
+*.tar.gz
+*.zip
