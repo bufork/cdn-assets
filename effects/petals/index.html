@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>petals.js · 花瓣飘落特效</title>
+<style>
+  :root { --pink: #e8618c; --ink: #1f2430; --muted: #6b7280; --line: #f0dfe5; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    min-height: 100vh;
+    font: 15px/1.7 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    color: var(--ink);
+    background:
+      radial-gradient(800px 460px at 10% -8%, #ffe3ec, rgba(255,227,236,0) 62%),
+      radial-gradient(640px 420px at 94% 4%, #eef0ff, rgba(238,240,255,0) 64%),
+      #fdf7f9;
+  }
+  main { max-width: 1200px; margin: 0 auto; padding: 56px 24px 80px; }
+  h1 { margin: 0 0 8px; font-size: clamp(26px, 5vw, 34px); letter-spacing: -.02em; }
+  h1 em { font-style: normal; background: linear-gradient(92deg, #e8618c, #a463d6); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .lede { margin: 0 0 26px; color: var(--muted); max-width: 60ch; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  .card { background: rgba(255,255,255,.88); border: 1px solid var(--line); border-radius: 14px; padding: 20px; }
+  .card h2 { margin: 0 0 16px; font-size: 12px; font-weight: 600; letter-spacing: .09em; color: var(--muted); text-transform: uppercase; }
+
+  .ctrl { display: grid; gap: 15px; }
+  .ctrl label { display: flex; justify-content: space-between; align-items: baseline; font-size: 13.5px; color: #414a5a; }
+  .ctrl label code { font-size: 11.5px; color: var(--pink); background: #ffeaf1; padding: 1px 6px; border-radius: 4px; margin-left: 6px; }
+  .ctrl output { font-variant-numeric: tabular-nums; font-weight: 600; color: var(--pink); }
+  input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 4px; margin-top: 7px; border-radius: 4px; background: #f1dde4; outline: none; }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 15px; height: 15px; border-radius: 50%; background: #fff; border: 2px solid var(--pink); cursor: pointer; }
+  input[type=range]::-moz-range-thumb { width: 13px; height: 13px; border-radius: 50%; background: #fff; border: 2px solid var(--pink); cursor: pointer; }
+
+  .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+  button { font: inherit; font-size: 13px; padding: 7px 14px; border-radius: 8px; border: 1px solid var(--line); background: #fff; color: #414a5a; cursor: pointer; }
+  button:hover { border-color: #e6b7c8; color: var(--pink); }
+  button.primary { background: linear-gradient(92deg, #e8618c, #d94f80); border-color: transparent; color: #fff; }
+  button.primary:hover { color: #fff; filter: brightness(1.04); }
+  .status { margin: 12px 2px 0; font-size: 12.5px; color: var(--muted); }
+
+  .code { position: relative; }
+  .code + .code { margin-top: 10px; }
+  pre { margin: 0; padding: 16px 18px; border-radius: 12px; overflow-x: auto; background: #241f27; color: #ece3ea; font-size: 12px; line-height: 1.7; white-space: pre; }
+  .copy { position: absolute; top: 8px; right: 8px; z-index: 1; font: inherit; font-size: 11.5px; line-height: 1.4; padding: 3px 9px; border-radius: 6px; cursor: pointer; color: #d8ccd4; background: #322b35; border: 1px solid #4a3f4b; opacity: .7; transition: opacity .15s, color .15s, border-color .15s; }
+  .copy:hover { opacity: 1; color: #fff; border-color: var(--pink); }
+  pre b { color: #f79cbd; font-weight: 400; }
+  pre i { color: #8b8391; font-style: normal; }
+  footer { margin-top: 26px; font-size: 12.5px; color: #9aa1ad; }
+
+  /* 宽屏两栏，pad 与手机自动收成单栏 */
+  .layout { display: grid; gap: 16px; grid-template-columns: 320px minmax(0, 1fr); align-items: start; }
+  .layout > .col { display: grid; gap: 16px; align-content: start; position: sticky; top: 24px; }
+  .notes ul { margin: 0; padding-left: 18px; display: grid; gap: 7px; font-size: 13px; color: #414a5a; }
+  .notes li::marker { color: var(--pink); }
+  .notes code { font-size: 12px; color: var(--pink); background: #ffeaf1; padding: 1px 5px; border-radius: 4px; }
+
+  @media (max-width: 1023px) {
+    main { max-width: 860px; padding: 42px 20px 64px; }
+    .layout { grid-template-columns: 1fr; }
+    .layout > .col { position: static; }
+    pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+  }
+  @media (max-width: 599px) {
+    body { font-size: 14px; }
+    main { padding: 26px 14px 44px; }
+    h1 { font-size: 24px; }
+    .lede { font-size: 13.5px; margin-bottom: 20px; }
+    .card { padding: 16px; border-radius: 12px; }
+    .card h2 { margin-bottom: 12px; }
+    .ctrl { gap: 13px; }
+    .ctrl label { font-size: 13px; }
+    .ctrl label code { font-size: 11px; }
+    pre { font-size: 11.5px; padding: 13px 14px; line-height: 1.65; }
+    .actions { gap: 7px; }
+    .actions button { flex: 1 1 auto; min-width: 92px; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>花瓣飘落 <em>petals.js</em></h1>
+  <p class="lede">单文件、零依赖，引入即自动启用。当前页面的花瓣就由它渲染。</p>
+
+  <div class="layout">
+  <div class="col">
+  <section class="card params">
+    <h2>实时参数</h2>
+    <div class="ctrl">
+      <label for="count"><span>花瓣数量 <code>count</code></span><output id="o-count">50</output></label>
+      <input id="count" type="range" min="0" max="150" step="1" value="50">
+
+      <label for="speed"><span>下落速度 <code>speed</code></span><output id="o-speed">1.0</output></label>
+      <input id="speed" type="range" min="0.2" max="3" step="0.1" value="1">
+
+      <label for="opacity"><span>不透明度 <code>opacity</code></span><output id="o-opacity">1.00</output></label>
+      <input id="opacity" type="range" min="0.1" max="1" step="0.05" value="1">
+
+      <label for="zindex"><span>图层层级 <code>zIndex</code></span><output id="o-zindex">9999</output></label>
+      <input id="zindex" type="range" min="1" max="99999" step="1" value="9999">
+    </div>
+    <div class="actions">
+      <button id="toggle" class="primary">暂停</button>
+      <button id="reset">恢复默认</button>
+      <button id="destroy">销毁实例</button>
+    </div>
+    <p class="status" id="status">状态：运行中</p>
+  </section>
+
+  <section class="card notes">
+    <h2>说明</h2>
+    <ul>
+      <li>引入即自动启用，无需调用初始化</li>
+      <li>贴图 base64 内联，无额外图片请求</li>
+      <li>标签页隐藏时自动暂停，后台不耗电</li>
+      <li>SPA 切换路由前调用 <code>Petals.destroy()</code></li>
+    </ul>
+  </section>
+  </div>
+
+  <section class="card">
+    <h2>接入代码</h2>
+    <div class="code"><button class="copy" type="button">复制</button><pre><i>&lt;!-- 1. 最简：引入即生效（放 head 或 body 末尾都可以） --&gt;</i>
+&lt;<b>script</b> <b>src</b>="https://cdn.jsdelivr.net/gh/bufork/cdn-assets@main/effects/petals/petals.js"&gt;&lt;/script&gt;</pre></div>
+
+    <div class="code"><button class="copy" type="button">复制</button><pre><i>&lt;!-- 2. 自定义参数：配置脚本必须写在引入之前 --&gt;</i>
+<i>&lt;!-- 下面为示例值，可自行修改；不写则使用默认值（等同上方滑块初始值） --&gt;</i>
+&lt;<b>script</b>&gt;
+window.PETALS_CONFIG = {
+    count: 30,     <i>// 花瓣数量</i>
+    size: 1,       <i>// 尺寸倍率</i>
+    speed: 0.8,    <i>// 下落速度</i>
+    opacity: 0.9,  <i>// 不透明度 0–1</i>
+    sway: true,    <i>// 左右摇摆</i>
+    zIndex: 9999   <i>// 图层层级</i>
+};
+&lt;/<b>script</b>&gt;
+&lt;<b>script</b> <b>src</b>="https://cdn.jsdelivr.net/gh/bufork/cdn-assets@main/effects/petals/petals.js"&gt;&lt;/script&gt;</pre></div>
+
+    <div class="code"><button class="copy" type="button">复制</button><pre><i>&lt;!-- 3. 运行时控制 --&gt;</i>
+Petals.set({ count: 20, speed: 1.5 });  <i>// 改参数，立即生效</i>
+Petals.disable();                       <i>// 暂停</i>
+Petals.enable();                        <i>// 恢复</i>
+Petals.destroy();                       <i>// 移除画布与监听</i></pre></div>
+
+    <div class="code"><button class="copy" type="button">复制</button><pre><i>&lt;!-- 4. 只加载不自动播放（例如等用户点开关） --&gt;</i>
+&lt;<b>script</b>&gt;window.PETALS_AUTO = false&lt;/<b>script</b>&gt;
+&lt;<b>script</b> <b>src</b>="https://cdn.jsdelivr.net/gh/bufork/cdn-assets@main/effects/petals/petals.js"&gt;&lt;/script&gt;
+&lt;<b>script</b>&gt;Petals.enable()&lt;/<b>script</b>&gt;</pre></div>
+  </section>
+  </div>
+
+  <footer>petals.js v2.0.0 · 贴图已内联，无需额外图片文件 · 详细说明见同目录 README.md</footer>
+</main>
+
+<!-- 特效脚本：jsDelivr CDN -->
+<script src="https://cdn.jsdelivr.net/gh/bufork/cdn-assets@main/effects/petals/petals.js"></script>
+<script>
+  (function () {
+    var $ = function (id) { return document.getElementById(id); };
+
+    // 代码块一键复制（不依赖特效脚本，CDN 未生效时也可用）
+    document.addEventListener('click', function (e) {
+      var btn = e.target.closest('.copy');
+      if (!btn) return;
+      var code = btn.parentNode.querySelector('pre');
+      if (!code) return;
+      var text = code.textContent;
+      var done = function (ok) {
+        btn.textContent = ok ? '已复制' : '复制失败';
+        setTimeout(function () { btn.textContent = '复制'; }, 1400);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function () { done(true); }, function () { done(false); });
+      } else {
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0';
+        document.body.appendChild(ta);
+        ta.select();
+        var ok = false;
+        try { ok = document.execCommand('copy'); } catch (err) { ok = false; }
+        document.body.removeChild(ta);
+        done(ok);
+      }
+    });
+
+    if (!window.Petals) {
+      $('status').textContent = '状态：脚本未加载（CDN 尚未生效）';
+      return;
+    }
+    var toggle = $('toggle');
+
+    function sync() {
+      var active = window.Petals.active;
+      var built = !!document.querySelector('canvas');
+      $('status').textContent = '状态：' + (active ? '运行中' : (built ? '已暂停' : '未启用'));
+      toggle.textContent = active ? '暂停' : '开启';
+    }
+
+    function bind(id, out, fmt, apply) {
+      var el = $(id);
+      el.addEventListener('input', function () {
+        var v = Number(el.value);
+        $(out).textContent = fmt(v);
+        window.Petals.set(apply(v));
+        sync();
+      });
+    }
+
+    bind('count', 'o-count', function (v) { return v; }, function (v) { return { count: v }; });
+    bind('speed', 'o-speed', function (v) { return v.toFixed(1); }, function (v) { return { speed: v }; });
+    bind('opacity', 'o-opacity', function (v) { return v.toFixed(2); }, function (v) { return { opacity: v }; });
+    bind('zindex', 'o-zindex', function (v) { return v; }, function (v) { return { zIndex: v }; });
+
+    toggle.addEventListener('click', function () {
+      if (window.Petals.active) window.Petals.disable();
+      else window.Petals.enable();
+      sync();
+    });
+
+    $('reset').addEventListener('click', function () {
+      window.Petals.set({ count: 50, speed: 1, opacity: 1, zIndex: 9999 });
+      $('count').value = 50; $('o-count').textContent = '50';
+      $('speed').value = 1; $('o-speed').textContent = '1.0';
+      $('opacity').value = 1; $('o-opacity').textContent = '1.00';
+      $('zindex').value = 9999; $('o-zindex').textContent = '9999';
+      sync();
+    });
+
+    $('destroy').addEventListener('click', function () {
+      window.Petals.destroy();
+      sync();
+    });
+
+    document.addEventListener('visibilitychange', sync);
+    document.addEventListener('DOMContentLoaded', sync);
+    window.addEventListener('load', sync);
+    sync();
+  })();
+</script>
+</body>
+</html>
